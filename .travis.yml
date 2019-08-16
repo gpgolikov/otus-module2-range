@@ -12,8 +12,9 @@ addons:
 install:
 - pip install --user conan
 - conan user
+- conan profile new default
+- conan profile update settings.compiler.libcxx=libc++
 script:
-- conan install -s compiler=clang -s compiler.libcxx=libc++ .
 - CXXFLAGS="-stdlib=libc++" cmake .
 - cmake --build .
 - cmake --build . --target test
@@ -22,5 +23,5 @@ deploy:
   provider: script
   skip_cleanup: true
   script:
-  - curl -f -T ip_filter-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -ugpgolikov:$BINTRAY_API_KEY "https://api.bintray.com/content/gpgolikov/otus-cpp/homework/$TRAVIS_BUILD_NUMBER/ip_filter-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=xenial;deb_component=main;deb_architecture=amd64;publish=1"
+  - curl -f -T range-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb -ugpgolikov:$BINTRAY_API_KEY "https://api.bintray.com/content/gpgolikov/otus-cpp/homework/$TRAVIS_BUILD_NUMBER/range-0.0.$TRAVIS_BUILD_NUMBER-Linux.deb;deb_distribution=xenial;deb_component=main;deb_architecture=amd64;publish=1"
 
