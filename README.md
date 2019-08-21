@@ -1,7 +1,7 @@
 # otus-module1-range
 
 OTUS modile 1 homework 2 - _range_
-Probe of range\_v3 library written by Eric Niebler
+Probe of _range-v3_ library written by _Eric Niebler_
 
 ## installation
 ```

@@ -1,42 +1,70 @@
 #include <iostream>
-#include <deque>
 #include <vector>
-#include <iterator>
-#include <algorithm>
+#include <cctype>
 #include <string_view>
 
 #include <range/v3/all.hpp>
 
-#include "ip_filter.h"
+#include "ip_address.h"
+
+/// @brief Converts Range of Range of chars to Range of ints
+auto atoi_range() {
+    using namespace ranges;
+    return view::transform([] (auto str) { 
+        return stoi(str | to_<std::string>());
+    });
+}
+
+/// @brief Makes immediately IpAddress from Range of ints
+auto make_ip_address() {
+    using namespace ranges;
+    return view::transform([] (auto parts) {
+        if (distance_compare(parts, 4))
+            throw std::invalid_argument("make_ip_address: ip contains exactly 4 parts");
+        
+        int ip[4];
+        for_each(parts, [&ip, i=0] (int p) mutable {
+            ip[i] = p;
+            ++i;
+        });
+        return griha::IpAddress { std::make_tuple(ip[0], ip[1], ip[2], ip[3]) };
+    });
+}
 
 int main()
 {
     using namespace std;
+    using namespace std::placeholders;
+    using namespace griha;
+    using namespace ranges;
 
-    try
-    {
-        vector<ip_address_t> ips;
+    // read IpAddress objects from standart input
+    auto ips = ( getlines(cin)
+    // convert lines to Ranges of ints
+               | view::transform([] (string_view line) {
+                   return line 
+                        | view::split('.')
+                        | atoi_range();
+               })
+    // make IpAddress objects from Ranges of ints
+               | make_ip_address()
+    // convert to vector of IpAddress objects for further sort
+               | to_<vector>()
+    // sort inplace
+               | action::sort(greater<>()));
 
-        // read ips
-        for(std::string line; std::getline(std::cin, line);)
-            ips.push_back(ip_read(line));
-        
-        // reverse sort of ips
-        ranges::sort(ips, greater<ip_address_t>());
-        ranges::for_each(ips, [] (const ip_address_t& ip) {
-            cout << ip << std::endl;
-        });
-        // filter by first byte (equals 1)
-        ip_filter(begin(ips), end(ips), ostream_iterator<ip_address_t>(cout, "\n"), 1);
-        // filter by first and second bytes (equal 46 anf 70)
-        ip_filter(begin(ips), end(ips), ostream_iterator<ip_address_t>(cout, "\n"), 46, 70);
-        // filter by any byte (46)
-        ip_filter_any(begin(ips), end(ips), ostream_iterator<ip_address_t>(cout, "\n"), 46);
-    }
-    catch(const std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
+    ranges::copy(ips,
+                 make_ostream_joiner(cout, '\n'));
+    endl(cout);
+    ranges::copy(ips | view::filter([] (auto& ip) { return ip_match(ip, 1); } ),
+                 make_ostream_joiner(cout, '\n'));
+    endl(cout);
+    ranges::copy(ips | view::filter([] (auto& ip) { return ip_match(ip, 46, 70); } ),
+                 make_ostream_joiner(cout, '\n'));
+    endl(cout);
+    ranges::copy(ips | view::filter([] (auto& ip) { return ip_match_any(ip, 46); } ),
+                 make_ostream_joiner(cout, '\n'));
+    endl(cout);
 
     return 0;
 }

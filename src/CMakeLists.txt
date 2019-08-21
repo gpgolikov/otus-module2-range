@@ -1,5 +1,4 @@
 list(APPEND ${PROJECT_NAME}_SOURCES
-    ip_filter.cpp
     main.cpp)
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
